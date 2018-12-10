@@ -12,7 +12,7 @@ docker run -itd \
 -e AWS_SECRET_ACCESS_KEY=my-aws-secret-key \
 -e AWS_DEFAULT_REGION=-my-aws-region \
 -e S3_BUCKET_URL=s3://s3-bucket/myrancher2backups/ \
--v /var/run/docker.sock:/var/run/docker.sock rancher2-backup "30 23 * * *  /usr/bin/rancher-backup"
+-v /var/run/docker.sock:/var/run/docker.sock ambientinnovation/rancher2-backup:latest "30 23 * * *  /usr/bin/rancher-backup"
 ```
 
 To decrypt the backup run `openssl enc -aes-256-cbc -d -in name.tar.gz.enc | tar xz`.
