@@ -4,7 +4,13 @@ TIMESTAMP=`date +%Y-%m-%d_%H-%M`
 #########
 docker stop ${RANCHER_CONTAINER_NAME}
 docker create --volumes-from ${RANCHER_CONTAINER_NAME} --name rancher-data-${TIMESTAMP} rancher/rancher:${RANCHER_CONTAINER_TAG}
+
+## Archiving /var/lib/rancher
+#############################
 docker run  --rm --volumes-from rancher-data-${TIMESTAMP} -v ${BACKUP_DIR}:/backup alpine /bin/sh -c "apk add --no-cache openssl && tar cz /var/lib/rancher | openssl enc -aes-256-cbc -e -k ${ARCHIVE_PASSWORD} > /backup/rancher-data-backup-${RANCHER_VERSION}-${TIMESTAMP}.tar.gz.enc"
+
+## Uploading compressed archive to AWS S3 Bucket
+################################################
 docker run --rm \
 -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
 -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
@@ -18,5 +24,9 @@ if [ $? -eq 0 ]; then
 else
   echo "rancher-data-backup-${RANCHER_VERSION}-${TIMESTAMP}.tar.gz.enc failed to be uploaded"
 fi
+
+## Remove backup locally
+########################
+docker run --rm -v ${BACKUP_DIR}:/srv alpine /bin/sh -c "rm -f /srv/rancher-data-backup-${RANCHER_VERSION}-${TIMESTAMP}.tar.gz.enc"
 
 docker start ${RANCHER_CONTAINER_NAME}
